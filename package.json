@@ -1,0 +1,34 @@
+{
+  "name": "iterarray",
+  "version": "0.1.0",
+  "description": "iterable indexable ",
+  "main": "src/index.js",
+  "scripts": {
+    "mocha": "mocha --recursive",
+    "lint": "eslint .",
+    "tst": "npm run lint && npm run mocha",
+    "coveralls": "istanbul cover _mocha --report lcovonly -- -R spec --recursive && cat ./coverage/lcov.info | coveralls && rm -rf ./coverage",
+    "istanbul": "istanbul cover _mocha -- -R spec --recursive",
+    "test": "npm run lint && npm run coveralls"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/xgbuils/iterarray/"
+  },
+  "keywords": [
+    "iterable",
+    "indexable",
+    "array",
+    "memoizable",
+    "lazy"
+  ],
+  "devDependencies": {
+    "chai": "^3.5.0",
+    "coveralls": "^2.13.1",
+    "eslint": "^3.19.0",
+    "istanbul": "^0.4.5",
+    "mocha": "^3.3.0"
+  },
+  "author": "Xavier Garcia Buils <xgbuils@gmail.com>",
+  "license": "MIT"
+}
