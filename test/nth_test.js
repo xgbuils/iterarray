@@ -2,25 +2,24 @@ const {expect} = require('chai')
 const IterArray = require('../src/index.js')
 
 describe('nth', function () {
-    describe('array', function () {
+    describe('Array', function () {
         describe('empty', function () {
             let emptyArray
+            let iterArray
             beforeEach(function () {
                 emptyArray = []
+                iterArray = new IterArray(emptyArray)
             })
 
             it('get index 0', function () {
-                const iterArray = new IterArray(emptyArray)
                 expect(iterArray.nth(0)).to.be.equal(undefined)
             })
 
             it('get negative index', function () {
-                const iterArray = new IterArray(emptyArray)
                 expect(iterArray.nth(-5)).to.be.equal(undefined)
             })
 
             it('get positive index', function () {
-                const iterArray = new IterArray(emptyArray)
                 expect(iterArray.nth(5)).to.be.equal(undefined)
             })
         })
@@ -54,7 +53,7 @@ describe('nth', function () {
         })
     })
 
-    describe('string', function () {
+    describe('String', function () {
         describe('empty', function () {
             let emptyString
             let iterArray
@@ -105,7 +104,7 @@ describe('nth', function () {
         })
     })
 
-    describe('set', function () {
+    describe('Set', function () {
         describe('empty', function () {
             let emptySet
             let iterArray

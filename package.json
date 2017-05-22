@@ -1,7 +1,7 @@
 {
   "name": "iterarray",
   "version": "0.1.0",
-  "description": "iterable indexable ",
+  "description": "iterable indexable",
   "main": "src/index.js",
   "scripts": {
     "mocha": "mocha --recursive",

@@ -22,19 +22,25 @@ function IterArray (iterable) {
             ? iterable
             : iterable[Symbol.iterator]()
     }
-    Object.defineProperties(this, createProps(_array, _start, _end, _iterator))
+    Object.defineProperties(this, createProps({
+        _array,
+        _start,
+        _end,
+        _iterator
+    }))
 }
 
 Object.defineProperties(IterArray.prototype, {
     slice: {
         value (start, end) {
-            const _start = Math.max(0, start)
-            const props = createProps(
-                this._array,
-                this._start + _start,
-                this._start + (end - start),
-                this._iterator
-            )
+            start = Math.max(0, start)
+            const _start = this._start + start
+            const props = createProps({
+                _array: this._array,
+                _start,
+                _end: _start + (end - start),
+                _iterator: this._iterator
+            })
             return Object.create(IterArray.prototype, props)
         }
     },
@@ -45,57 +51,62 @@ Object.defineProperties(IterArray.prototype, {
             if (n >= this._end) {
                 return
             }
-            return nth(this, n)
+            const array = this._array
+            if (this._iterator) {
+                while (n >= array.length && addToCache(this)) {}
+            }
+            return array[n]
         }
     },
 
     [Symbol.iterator]: {
         * value () {
-            for (let index = this._start; index < this._end; ++index) {
-                yield nth(this, index)
+            const {_array, _start, _end} = this
+            const length = Math.min(_array.length, _end)
+            let index
+            for (index = Math.min(length, _start); index < length; ++index) {
+                yield _array[index]
+            }
+            if (this._iterator) {
+                for (; index < _end; ++index) {
+                    if (!addToCache(this)) {
+                        return
+                    }
+                    if (index >= _start) {
+                        yield _array[index]
+                    }
+                }
             }
         }
     }
 })
 
-function nth (iterarray, n) {
+function addToCache (iterarray) {
     const array = iterarray._array
-    const iterator = iterarray._iterator
-    if (iterator) {
-        while (n >= array.length) {
-            const {done, value} = iterator.next()
-            if (done) {
-                iterarray._end = array.length
-                iterarray._iterator = null
-                break
-            }
-            array.push(value)
-        }
+    const {done, value} = iterarray._iterator.next()
+    if (done) {
+        iterarray._end = array.length
+        iterarray._iterator = null
+        return false
     }
-    return array[n]
+    return !!array.push(value)
 }
 
 function isIterable (iterable) {
     return iterable != null && typeof iterable[Symbol.iterator] === 'function'
 }
 
-function createProps (array, start, end, iterator) {
-    return {
-        _array: {
-            value: array
-        },
-        _start: {
-            value: start
-        },
-        _end: {
-            value: end,
-            configurable: true
-        },
-        _iterator: {
-            value: iterator,
-            configurable: true
-        }
-    }
+function createProps (props) {
+    const defProps = Object.keys(props).reduce((defProps, prop) => {
+        return Object.assign(defProps, {
+            [prop]: {
+                value: props[prop]
+            }
+        })
+    }, {})
+    defProps._end.writable = true
+    defProps._iterator.writable = true
+    return defProps
 }
 
 module.exports = IterArray
