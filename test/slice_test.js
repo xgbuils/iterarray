@@ -147,78 +147,105 @@ describe('slice', function () {
                 expect([...slice]).to.be.deep.equal([])
             })
         })
+    })
 
-        describe('multiple calls', function () {
-            let array
-            function throwAt (array, n) {
-                return new IterArray(function* () {
-                    for (const val of array) {
-                        yield val
-                        --n
-                        if (n <= 0) {
-                            throw Error('not enough memoization')
-                        }
-                    }
-                })
+    describe('slice is lazy', function () {
+        let string
+        function throwAt (string, n) {
+            return throwMsgAt(string, n, 'too eager')
+        }
+        beforeEach(function () {
+            string = 'abcd'
+        })
+
+        it('slice does not iterates over values until it is iterated', function () {
+            const iterArray = throwAt(string, 0)
+            function test () {
+                iterArray.slice(1, 3)
             }
-            beforeEach(function () {
-                array = ['i', 'ii', 'iii', 'iv']
-            })
+            expect(test).to.not.throw(Error)
+        })
 
-            it('first slice bigger than second', function () {
-                const iterArray = throwAt(array, 4)
-                const first = iterArray.slice(1, 3)
-                const second = iterArray.slice(0, 4)
-                expect([...first]).to.be.deep.equal(array.slice(1, 3))
-                expect([...second]).to.be.deep.equal(array.slice(0, 4))
-            })
+        it('slice does not iterate more than is required()', function () {
+            const iterArray = throwAt(string, 3)
+            const result = iterArray.slice(0, 3)
+            expect([...result]).to.be.deep.equal(['a', 'b', 'c'])
+        })
+    })
 
-            it('first slice smaller than second', function () {
-                const iterArray = throwAt(array, 3)
-                const first = iterArray.slice(1, 3)
-                const second = iterArray.slice(2, 3)
-                expect([...first]).to.be.deep.equal(array.slice(1, 3))
-                expect([...second]).to.be.deep.equal(array.slice(2, 3))
-            })
+    describe('multiple calls', function () {
+        let array
+        function throwAt (array, n) {
+            return throwMsgAt(array, n, 'not enough memoization')
+        }
+        beforeEach(function () {
+            array = ['i', 'ii', 'iii', 'iv']
+        })
 
-            it('first slice equal to second', function () {
-                const iterArray = throwAt(array, 4)
-                const first = iterArray.slice(2, 4)
-                const second = iterArray.slice(2, 4)
-                expect([...first]).to.be.deep.equal(array.slice(2, 4))
-                expect([...second]).to.be.deep.equal(array.slice(2, 4))
-            })
+        it('first slice bigger than second', function () {
+            const iterArray = throwAt(array, 4)
+            const first = iterArray.slice(1, 3)
+            const second = iterArray.slice(0, 4)
+            expect([...first]).to.be.deep.equal(array.slice(1, 3))
+            expect([...second]).to.be.deep.equal(array.slice(0, 4))
+        })
 
-            it('first slice intersects right with second', function () {
-                const iterArray = throwAt(array, 3)
-                const first = iterArray.slice(0, 2)
-                const second = iterArray.slice(1, 3)
-                expect([...first]).to.be.deep.equal(array.slice(0, 2))
-                expect([...second]).to.be.deep.equal(array.slice(1, 3))
-            })
+        it('first slice smaller than second', function () {
+            const iterArray = throwAt(array, 3)
+            const first = iterArray.slice(1, 3)
+            const second = iterArray.slice(2, 3)
+            expect([...first]).to.be.deep.equal(array.slice(1, 3))
+            expect([...second]).to.be.deep.equal(array.slice(2, 3))
+        })
 
-            it('first slice intersects left with second', function () {
-                const iterArray = throwAt(array, 4)
-                const first = iterArray.slice(1, 4)
-                const second = iterArray.slice(0, 3)
-                expect([...first]).to.be.deep.equal(array.slice(1, 4))
-                expect([...second]).to.be.deep.equal(array.slice(0, 3))
-            })
+        it('first slice equal to second', function () {
+            const iterArray = throwAt(array, 4)
+            const first = iterArray.slice(2, 4)
+            const second = iterArray.slice(2, 4)
+            expect([...first]).to.be.deep.equal(array.slice(2, 4))
+            expect([...second]).to.be.deep.equal(array.slice(2, 4))
+        })
 
-            it('first and second slices are disjoint', function () {
-                const iterArray = throwAt(array, 3)
-                const first = iterArray.slice(1, 2)
-                const second = iterArray.slice(2, 3)
-                expect([...first]).to.be.deep.equal(array.slice(1, 2))
-                expect([...second]).to.be.deep.equal(array.slice(2, 3))
-            })
+        it('first slice intersects right with second', function () {
+            const iterArray = throwAt(array, 3)
+            const first = iterArray.slice(0, 2)
+            const second = iterArray.slice(1, 3)
+            expect([...first]).to.be.deep.equal(array.slice(0, 2))
+            expect([...second]).to.be.deep.equal(array.slice(1, 3))
+        })
 
-            it('slice does not compute values until iteration is required', function () {
-                const iterArray = throwAt(array, 1)
-                iterArray.slice(0, 4)
-                const second = iterArray.slice(0, 1)
-                expect([...second]).to.be.deep.equal(array.slice(0, 1))
-            })
+        it('first slice intersects left with second', function () {
+            const iterArray = throwAt(array, 4)
+            const first = iterArray.slice(1, 4)
+            const second = iterArray.slice(0, 3)
+            expect([...first]).to.be.deep.equal(array.slice(1, 4))
+            expect([...second]).to.be.deep.equal(array.slice(0, 3))
+        })
+
+        it('first and second slices are disjoint', function () {
+            const iterArray = throwAt(array, 3)
+            const first = iterArray.slice(1, 2)
+            const second = iterArray.slice(2, 3)
+            expect([...first]).to.be.deep.equal(array.slice(1, 2))
+            expect([...second]).to.be.deep.equal(array.slice(2, 3))
+        })
+
+        it('slice does not compute values until iteration is required', function () {
+            const iterArray = throwAt(array, 1)
+            iterArray.slice(0, 4)
+            const second = iterArray.slice(0, 1)
+            expect([...second]).to.be.deep.equal(array.slice(0, 1))
         })
     })
 })
+
+function throwMsgAt (array, n, msg) {
+    return new IterArray(function* () {
+        for (const val of array) {
+            if (n-- <= 0) {
+                throw Error(msg)
+            }
+            yield val
+        }
+    })
+}
