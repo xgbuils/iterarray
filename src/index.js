@@ -6,7 +6,7 @@ function IterArray (iterable) {
         iterable = iterable()
     }
     if (!isIterable(iterable)) {
-        return
+        throw new Error(`${iterable} is not an iterable or iterator`)
     }
     let _array = []
     let _start = 0
