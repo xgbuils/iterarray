@@ -6,12 +6,12 @@ function IterArray (iterable) {
         throw new Error(`${iterable} is not an iterable or iterator`)
     }
     const priv = {
-        array: [],
+        cache: [],
         start: 0,
         end: Infinity
     }
     if (typeof iterable.length === 'number') {
-        priv.array = iterable
+        priv.cache = iterable
         priv.end = iterable.length
     } else if (iterable instanceof IterArray) {
         return iterable
@@ -42,7 +42,7 @@ function sliceFactory (priv) {
         start = Math.max(0, start)
         const newStart = priv.start + start
         return IterArrayConstructor({
-            array: priv.array,
+            cache: priv.cache,
             start: newStart,
             end: newStart + (end - start),
             iterator: priv.iterator
@@ -56,21 +56,21 @@ function nthFactory (priv) {
         if (n >= priv.end) {
             return
         }
-        const {array, iterator} = priv
+        const {cache, iterator} = priv
         if (iterator) {
-            while (n >= array.length && addToCache(priv)) {}
+            while (n >= cache.length && addToCache(priv)) {}
         }
-        return array[n]
+        return cache[n]
     }
 }
 
 function generatorFactory (private) {
     return function* () {
-        const {array, start, end} = private
-        const length = Math.min(array.length, end)
+        const {cache, start, end} = private
+        const length = Math.min(cache.length, end)
         let index
         for (index = Math.min(length, start); index < length; ++index) {
-            yield array[index]
+            yield cache[index]
         }
         if (private.iterator) {
             for (; index < end; ++index) {
@@ -78,7 +78,7 @@ function generatorFactory (private) {
                     return
                 }
                 if (index >= start) {
-                    yield array[index]
+                    yield cache[index]
                 }
             }
         }
@@ -86,14 +86,14 @@ function generatorFactory (private) {
 }
 
 function addToCache (iterarray) {
-    const {array} = iterarray
+    const {cache} = iterarray
     const {done, value} = iterarray.iterator.next()
     if (done) {
-        iterarray.end = array.length
+        iterarray.end = cache.length
         iterarray.iterator = null
         return false
     }
-    return !!array.push(value)
+    return !!cache.push(value)
 }
 
 function isIterable (iterable) {
