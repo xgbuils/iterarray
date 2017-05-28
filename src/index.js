@@ -54,7 +54,7 @@ function sliceFactory (priv) {
 function nthFactory (priv) {
     return function (n) {
         n += priv.start
-        if (n >= priv.end) {
+        if (n < priv.start || n >= priv.end) {
             return
         }
         const {cache, iterator} = priv

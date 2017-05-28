@@ -191,4 +191,21 @@ describe('nth', function () {
             })
         })
     })
+
+    describe('calling nth to sliced IterArray', function () {
+        it('get negative index of sliced IterArray', function () {
+            const iterArray = IterArray([1, 2, 3, 4]).slice(1, 3)
+            expect(iterArray.nth(-1)).to.be.equal(undefined)
+        })
+
+        it('get inner index of sliced IterArray', function () {
+            const iterArray = IterArray([1, 2, 3, 4]).slice(1, 3)
+            expect(iterArray.nth(0)).to.be.equal(2)
+        })
+
+        it('get outer index of sliced IterArray', function () {
+            const iterArray = IterArray([1, 2, 3, 4]).slice(1, 3)
+            expect(iterArray.nth(2)).to.be.equal(undefined)
+        })
+    })
 })
