@@ -12,7 +12,7 @@ function IterArray (iterable) {
     } else if (isIterator(iterable)) {
         priv.iterator = iterable
     } else if (isIterable(iterable)) {
-        if (typeof iterable.length === 'number') {
+        if (typeof iterable === 'string' || Array.isArray(iterable)) {
             priv.cache = iterable
             priv.end = iterable.length
         } else {
