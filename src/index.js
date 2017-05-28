@@ -2,23 +2,24 @@ function IterArray (iterable) {
     if (typeof iterable === 'function') {
         iterable = iterable()
     }
-    if (!isIterable(iterable)) {
-        throw new Error(`${iterable} is not an iterable or iterator`)
-    }
     const priv = {
         cache: [],
         start: 0,
         end: Infinity
     }
-    if (typeof iterable.length === 'number') {
-        priv.cache = iterable
-        priv.end = iterable.length
-    } else if (iterable instanceof IterArray) {
+    if (iterable instanceof IterArray) {
         return iterable
+    } else if (isIterator(iterable)) {
+        priv.iterator = iterable
+    } else if (isIterable(iterable)) {
+        if (typeof iterable.length === 'number') {
+            priv.cache = iterable
+            priv.end = iterable.length
+        } else {
+            priv.iterator = iterable[Symbol.iterator]()
+        }
     } else {
-        priv.iterator = typeof iterable.next === 'function'
-            ? iterable
-            : iterable[Symbol.iterator]()
+        throw new Error(`${iterable} is not an iterable or iterator`)
     }
     return IterArrayConstructor(priv)
 }
@@ -94,6 +95,10 @@ function addToCache (iterarray) {
         return false
     }
     return !!cache.push(value)
+}
+
+function isIterator (iterator) {
+    return iterator != null && typeof iterator.next === 'function'
 }
 
 function isIterable (iterable) {
