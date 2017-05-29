@@ -87,23 +87,23 @@ Internally, the `slice` method does not slice the iterable, it just define a new
 
 ### length
 
-A property of IterArray instance that can be a primitive finite and positive number or `undefined`. The `length` property can be determined with a finite number only if all of the values of IterArray instance are cached.
+A property of IterArray instance that can be an integer positive number or `Infinity`. The `length` property can be determined with a finite number only if all of the values of IterArray instance are cached. 
 
-Internally, `IterArray` makes optimizations for arrays and primitive strings caching the values when the IterArray instance is created.
+In general, while not all of the values of iterable are traversed, `length` property is Infinity. However `IterArray` makes optimizations for arrays and primitive strings caching the values when the IterArray instance is created. Then, `length` is a finite number in a first instance. 
 
 #### Example:
 ``` javascript
 const a = IterArray(new Set([1, 2]))
-a.length // undefined
+a.length // Infinity
 a.nth(0) // 1
-a.length // undefined
+a.length // Infinity
 a.nth(1) // 2
-a.length // undefined
+a.length // Infinity
 a.nth(2) // undefined
 a.length // 2
 
 const b = IterArray(new Set([1, 2]))
-b.length // undefined
+b.length // Infinity
 ;[...b] // [1, 2]
 b.length // 2
 
