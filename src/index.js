@@ -34,6 +34,11 @@ function IterArrayConstructor (priv) {
         },
         [Symbol.iterator]: {
             value: generatorFactory(priv)
+        },
+        length: {
+            get () {
+                return priv.end
+            }
         }
     })
 }
