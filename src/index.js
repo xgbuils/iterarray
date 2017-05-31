@@ -32,6 +32,9 @@ function IterArrayConstructor (priv) {
         nth: {
             value: nthFactory(priv)
         },
+        has: {
+            value: nthFactory(priv, true)
+        },
         [Symbol.iterator]: {
             value: generatorFactory(priv)
         },
@@ -56,17 +59,17 @@ function sliceFactory (priv) {
     }
 }
 
-function nthFactory (priv) {
+function nthFactory (priv, hasMethod) {
     return function (n) {
         n += priv.start
         if (n < priv.start || n >= priv.end) {
-            return
+            return hasMethod && false
         }
         const {cache, iterator} = priv
         if (iterator) {
             while (n >= cache.length && addToCache(priv)) {}
         }
-        return cache[n]
+        return hasMethod ? n < cache.length : cache[n]
     }
 }
 
