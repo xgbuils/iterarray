@@ -5,7 +5,7 @@
 [![Coverage Status][5]][6]
 [![Dependency Status][7]][8]
 
-`IterArray` is an iterable adapter that, given an iterable/generator or iterator, creates a new indexable lazy iterable yhat provides `nth` and `slice` methods.
+`IterArray` is an iterable adapter that, given an iterable/generator or iterator, creates a new indexable lazy iterable that provides `nth` and `slice` methods.
 
 Performance of IterArray instances are optimized for `Array` and primitive string iterables.
 
@@ -76,6 +76,22 @@ iterable.nth(6) // 9
 iterable.nth(0) // 2
 iterable.nth(-5) // undefined
 iterable.nth(10) // undefined
+
+```
+
+### has (index)
+It returns true if IterArray instance produces the `index`-th value.
+
+#### Example:
+``` javascript
+const IterArray = require('iterarray')
+
+const iterable = IterArray([2, 5, 3, 7, 6, 1, 9, 4])
+iterable.has(0) // true
+iterable.has(5) // true
+iterable.nth(2) // true
+iterable.nth(-5) // false
+iterable.nth(21) // false
 
 ```
 
