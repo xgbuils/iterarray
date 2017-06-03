@@ -1,105 +1,106 @@
+const keyCache = Symbol('cache')
+const keyIterator = Symbol('iterator')
+const keyStart = Symbol('start')
+const keyEnd = Symbol('end')
+
 function IterArray (iterable) {
+    if (!(this instanceof IterArray)) {
+        return new IterArray(iterable)
+    }
     if (typeof iterable === 'function') {
         iterable = iterable()
     }
-    const priv = {
-        cache: [],
-        start: 0,
-        end: Infinity
-    }
+    this[keyCache] = []
+    this[keyStart] = 0
+    this[keyEnd] = Infinity
     if (iterable instanceof IterArray) {
         return iterable
     } else if (isIterator(iterable)) {
-        priv.iterator = iterable
+        this[keyIterator] = iterable
     } else if (isIterable(iterable)) {
         if (typeof iterable === 'string' || Array.isArray(iterable)) {
-            priv.cache = iterable
-            priv.end = iterable.length
+            this[keyCache] = iterable
+            this[keyEnd] = iterable.length
         } else {
-            priv.iterator = iterable[Symbol.iterator]()
+            this[keyIterator] = iterable[Symbol.iterator]()
         }
     } else {
         throw new Error(`${iterable} is not an iterable or iterator`)
     }
-    return IterArrayConstructor(priv)
 }
 
-function IterArrayConstructor (priv) {
-    return Object.create(IterArray.prototype, {
-        slice: {
-            value: sliceFactory(priv)
-        },
-        nth: {
-            value: nthFactory(priv)
-        },
-        has: {
-            value: nthFactory(priv, true)
-        },
-        [Symbol.iterator]: {
-            value: generatorFactory(priv)
-        },
-        length: {
-            get () {
-                return priv.end
+IterArray.factory = function (gen) {
+    return (...args) => IterArray(gen(...args))
+}
+
+Object.defineProperties(IterArray.prototype, {
+    slice: {
+        value (start, end) {
+            start = Math.max(0, start)
+            const newStart = this[keyStart] + start
+            const iterarray = Object.create(IterArray.prototype)
+            iterarray[keyCache] = this[keyCache]
+            iterarray[keyIterator] = this[keyIterator]
+            iterarray[keyStart] = newStart
+            iterarray[keyEnd] = newStart + (end - start)
+            return iterarray
+        }
+    },
+    nth: {
+        value: nthFactory()
+    },
+    has: {
+        value: nthFactory(true)
+    },
+    [Symbol.iterator]: {
+        * value () {
+            const cache = this[keyCache]
+            const start = this[keyStart]
+            const end = this[keyEnd]
+            const length = Math.min(cache.length, end)
+            let index
+            for (index = Math.min(length, start); index < length; ++index) {
+                yield cache[index]
+            }
+            if (this[keyIterator]) {
+                for (; index < end; ++index) {
+                    if (!addToCache(this)) {
+                        return
+                    }
+                    if (index >= start) {
+                        yield cache[index]
+                    }
+                }
             }
         }
-    })
-}
-
-function sliceFactory (priv) {
-    return function (start, end) {
-        start = Math.max(0, start)
-        const newStart = priv.start + start
-        return IterArrayConstructor({
-            cache: priv.cache,
-            start: newStart,
-            end: newStart + (end - start),
-            iterator: priv.iterator
-        })
+    },
+    length: {
+        get () {
+            return this[keyEnd]
+        }
     }
-}
+})
 
-function nthFactory (priv, hasMethod) {
+function nthFactory (hasMethod) {
     return function (n) {
-        n += priv.start
-        if (n < priv.start || n >= priv.end) {
+        n += this[keyStart]
+        if (n < this[keyStart] || n >= this[keyEnd]) {
             return hasMethod && false
         }
-        const {cache, iterator} = priv
-        if (iterator) {
-            while (n >= cache.length && addToCache(priv)) {}
+        const cache = this[keyCache]
+        if (this[keyIterator]) {
+            while (n >= cache.length && addToCache(this)) {}
         }
         return hasMethod ? n < cache.length : cache[n]
     }
 }
 
-function generatorFactory (private) {
-    return function* () {
-        const {cache, start, end} = private
-        const length = Math.min(cache.length, end)
-        let index
-        for (index = Math.min(length, start); index < length; ++index) {
-            yield cache[index]
-        }
-        if (private.iterator) {
-            for (; index < end; ++index) {
-                if (!addToCache(private)) {
-                    return
-                }
-                if (index >= start) {
-                    yield cache[index]
-                }
-            }
-        }
-    }
-}
-
 function addToCache (iterarray) {
-    const {cache} = iterarray
-    const {done, value} = iterarray.iterator.next()
+    const cache = iterarray[keyCache]
+    const {done, value} = iterarray[keyIterator].next()
     if (done) {
-        iterarray.end = cache.length
-        iterarray.iterator = null
+        iterarray[keyEnd] = cache.length
+        iterarray[keyIterator] = null
         return false
     }
     return !!cache.push(value)
